@@ -19,6 +19,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
+	"google.golang.org/protobuf/proto"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -60,11 +61,19 @@ func ObjectsAreEqual(expected, actual interface{}) bool {
 		return expected == actual
 	}
 
+	expProto, ok := expected.(proto.Message)
+	if ok {
+		actProto, ok := actual.(proto.Message)
+		if ok {
+			// if both are protobuf messages, use `proto.Equal`
+			return proto.Equal(expProto, actProto)
+		}
+	}
+
 	exp, ok := expected.([]byte)
 	if !ok {
 		return reflect.DeepEqual(expected, actual)
 	}
-
 	act, ok := actual.([]byte)
 	if !ok {
 		return false
